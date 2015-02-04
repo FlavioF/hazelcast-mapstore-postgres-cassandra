@@ -1,0 +1,7 @@
+target
+build
+test-output
+gen
+
+#Temp Files
+*~
