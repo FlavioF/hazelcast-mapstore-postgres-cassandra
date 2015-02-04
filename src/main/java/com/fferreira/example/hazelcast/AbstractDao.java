@@ -19,7 +19,6 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.EntityType;
 
-
 public abstract class AbstractDao<T> {
 
   protected final Class<T> entityClass;

@@ -12,12 +12,13 @@
  */
 package com.fferreira.example.hazelcast;
 
-import com.fferreira.example.hazelcast.Constants;
 import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.config.GroupConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
+import com.hazelcast.core.OperationTimeoutException;
+import java.util.Collections;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,47 +27,51 @@ public class HazelcastWorker {
 
   // members
   static final Logger log = LoggerFactory.getLogger(HazelcastWorker.class);
-  private IMap<String, String> subscribedEvents;
-  private HazelcastInstance hcInstance;
+  private final IMap<String, String> subscribedEvents;
+  private final HazelcastInstance hcInstance;
 
-  // public API
   public HazelcastWorker(final String datastore) {
-
     log.info("Creating Hazelcast CEP worker..");
     hcInstance = HazelcastClient.newHazelcastClient(getConfig());
     subscribedEvents = hcInstance.getMap(datastore);
     log.info("Created CEP worker.");
   }
 
-  /**
-   * Registers a subscriber instance and all events related to its type.
-   *
-   * @param subscriberClassName
-   *          the subcriber class name.
-   * @param eventsToSubscribe
-   *          the events to be registered for this subscriber type.
-   */
-  public void addSubscriber(final String subscriberClassName,
-      String eventsToSubscribe) {
-
-    log.info("Storing {} events for subscriber type {}",
-        eventsToSubscribe, subscriberClassName);
-    subscribedEvents.put(subscriberClassName, eventsToSubscribe);
+  public void addSubscriber(final String id, String message) {
+    log.info("Storing {} for event {}", message, id);
+    subscribedEvents.put(id, message);
   }
 
-  public void removeSubscriber(final String subscriberClassName) {
-
-    log.info("Removing events for subscriber type {}", subscriberClassName);
-    subscribedEvents.remove(subscriberClassName);
+  public void removeSubscriber(final String id) {
+    log.info("Removing event {}", id);
+    subscribedEvents.remove(id);
   }
 
   public Set<String> getSubscribers() {
-
     return subscribedEvents.keySet();
   }
-  
-    public String getEvent(String key){
-    return subscribedEvents.get(key);
+
+  public String getEvent(final String id) {
+    return subscribedEvents.get(id);
+  }
+
+  public Set<String> getEventsWithMessage(final String message) {
+
+    log.info("Finding events with message {}.", message);
+    // retrieve interested subscriber types
+    Set<String> events = Collections.EMPTY_SET;
+
+    try {
+      final EventWithMessagePredicate predicate = new EventWithMessagePredicate(
+          message);
+      events = subscribedEvents.keySet(predicate);
+      log.info("Found {} events with message {} .", events.size(), message);
+
+    } catch (OperationTimeoutException ote) {
+      log.error("Hazelcast cluster is borked, so return empty set", ote);
+    }
+
+    return events;
   }
 
   public void destroy() {

@@ -12,10 +12,11 @@
  */
 package com.fferreira.example.hazelcast.postgres;
 
-import com.fferreira.example.hazelcast.EventEntity;
 import com.fferreira.example.hazelcast.Constants;
+import com.fferreira.example.hazelcast.EventEntity;
 import com.fferreira.example.hazelcast.HazelcastStore;
 import com.fferreira.example.hazelcast.HazelcastWorker;
+import java.util.Set;
 import java.util.UUID;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -117,12 +118,19 @@ public class HCPostgresWorkerTest {
     // getting valid values to id and event
     final EventEntity res = dao.findAll().get(0);
     id = res.getId();
-    event = res.getEventData();
+    event = res.getMessage();
   }
 
   @Test(dependsOnGroups = CREATE_GROUP, groups = RUD_GROUP)
-  public void test_get_event_data() {
+  public void test_get_event() {
     assertEquals(worker.getEvent(id), event);
+  }
+
+  @Test(dependsOnGroups = CREATE_GROUP, groups = RUD_GROUP)
+  public void test_get_event_with_given_message() {
+    final Set<String> events = worker.getEventsWithMessage(event);
+    assertEquals(events.size(), 1);
+    assertEquals(events.toArray()[0], id);
   }
 
   @Test(dependsOnGroups = RUD_GROUP, groups = COLD_START_GROUP)
@@ -135,6 +143,13 @@ public class HCPostgresWorkerTest {
     worker = new HazelcastWorker(Constants.POSTGRES_MAP_STORE);
 
     assertEquals(worker.getEvent(id), event);
+  }
+
+  @Test(dependsOnGroups = COLD_START_GROUP)
+  public void test_get_event_with_given_message_before_coldstart() throws InterruptedException {
+    final Set<String> events = worker.getEventsWithMessage(event);
+    assertEquals(events.size(), 1);
+    assertEquals(events.toArray()[0], id);
   }
 
 }

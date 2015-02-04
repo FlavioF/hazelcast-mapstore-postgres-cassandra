@@ -33,18 +33,16 @@ public class EventEntity implements Serializable {
   @Version
   private Long version;
 
-  private String eventData;
+  private String message;
 
   public EventEntity() {
   }
 
-  public EventEntity(String id, String eventData) {
+  public EventEntity(String id, String message) {
     this.id = id;
-    this.eventData = eventData;
+    this.message = message;
   }
   
-  
-
   public String getId() {
     return id;
   }
@@ -57,12 +55,12 @@ public class EventEntity implements Serializable {
     return version;
   }
 
-  public String getEventData() {
-    return eventData;
+  public String getMessage() {
+    return message;
   }
 
-  public void setEventData(String eventData) {
-    this.eventData = eventData;
+  public void setMessage(String message) {
+    this.message = message;
   }
 
 

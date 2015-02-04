@@ -46,7 +46,7 @@ public class CassandraClient {
     connect().execute(//
         "INSERT INTO " + Constants.CASSANDRA_KEYSPACE_TABLE_NAME//
             + " (id, data) "//
-            + "VALUES ('" + value.getId() + "','" + value.getEventData() //
+            + "VALUES ('" + value.getId() + "','" + value.getMessage() //
             + "');");
   }
 

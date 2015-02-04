@@ -62,7 +62,7 @@ public class HCCassandraMapStore implements MapStore<String, String> {
   public String load(String key) {
     log.info("Loading");
     final EventEntity event = dao.find(key);
-    return event == null ? null : event.getEventData();
+    return event == null ? null : event.getMessage();
   }
 
   @Override
@@ -72,7 +72,7 @@ public class HCCassandraMapStore implements MapStore<String, String> {
     final Map<String, String> map = new HashMap<>();
      list.stream().
      forEach((item) -> {
-     map.put(item.getId(), item.getEventData());
+     map.put(item.getId(), item.getMessage());
      });
     return map;
   }

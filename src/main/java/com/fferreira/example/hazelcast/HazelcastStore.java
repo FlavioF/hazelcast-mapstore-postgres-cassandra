@@ -33,7 +33,7 @@ public class HazelcastStore {
 
   // members
   static final Logger log = LoggerFactory.getLogger(HazelcastStore.class);
-  private String hcInstanceName;
+  private final String instanceName;
   private final MapStore store;
   private final String storeType;
 
@@ -42,7 +42,7 @@ public class HazelcastStore {
     this.store = store;
     this.storeType = storeType;
     log.info("Creating Hazelcast CEP instance..");
-    hcInstanceName = UUID.randomUUID().toString();
+    instanceName = UUID.randomUUID().toString();
     Hazelcast.newHazelcastInstance(getConfig());
     log.info("Created CEP instance.");
   }
@@ -50,7 +50,7 @@ public class HazelcastStore {
   public Config getConfig() {
 
     final Config cfg = new Config();
-    cfg.setInstanceName(hcInstanceName);
+    cfg.setInstanceName(instanceName);
 
     final Properties props = new Properties();
     props.put("hazelcast.rest.enabled", false);
@@ -80,26 +80,14 @@ public class HazelcastStore {
     // ssl
     netCfg.setSSLConfig(new SSLConfig().setEnabled(false));
 
-    /*
-     * Beware, there be dragons..
-     * 
-     * Hazelcast uses ExecutorService for running parallelized queries (one per
-     * partition). Each runnable, when executed, will try and use TCCL which
-     * doesn't work good in Karaf. Thank god, Hazelcast provides a way to set
-     * the classloader to use.
-     * 
-     * See
-     * http://apache-felix.18485.x6.nabble.com/Can-the-thread-context-classloader
-     * -issue-be-solved-at-all-td4835872.html
-     */
-    cfg.setClassLoader(getClass().getClassLoader());
-
     // Adding mapstore
     final MapConfig mapCfg = cfg.getMapConfig(storeType);
 
     final MapStoreConfig mapStoreCfg = new MapStoreConfig();
     mapStoreCfg.setImplementation(store);
     mapStoreCfg.setWriteDelaySeconds(1);
+    // to load all map at same time
+    mapStoreCfg.setInitialLoadMode(MapStoreConfig.InitialLoadMode.EAGER);
     mapCfg.setMapStoreConfig(mapStoreCfg);
     cfg.addMapConfig(mapCfg);
     return cfg;
@@ -110,9 +98,9 @@ public class HazelcastStore {
    */
   public void destroy() {
 
-    log.info("Shutting down Hazelcast instance [{}]..", hcInstanceName);
+    log.info("Shutting down Hazelcast instance [{}]..", instanceName);
     final HazelcastInstance instance = Hazelcast
-        .getHazelcastInstanceByName(hcInstanceName);
+        .getHazelcastInstanceByName(instanceName);
     if (instance != null) {
       instance.shutdown();
     }

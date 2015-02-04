@@ -17,6 +17,7 @@ import com.fferreira.example.hazelcast.Constants;
 import com.fferreira.example.hazelcast.EventEntity;
 import com.fferreira.example.hazelcast.HazelcastStore;
 import com.fferreira.example.hazelcast.HazelcastWorker;
+import java.util.Set;
 import java.util.UUID;
 import static org.testng.AssertJUnit.assertEquals;
 import org.testng.annotations.AfterClass;
@@ -43,7 +44,7 @@ public class HCCassandraWorkerTest {
 
   @BeforeClass
   public void setUpClass() throws Exception {
-    
+
     // creating cassandra client with IP added to POM.
     dao = new CassandraClient();
     dao.initialize(System.getProperty("cassandra.ip"));
@@ -60,9 +61,12 @@ public class HCCassandraWorkerTest {
     mapStore = new HCCassandraMapStore();
     mapStore.setDao(dao);
 
+    // starting 3 instances of hazelcast
     store = new HazelcastStore(mapStore, Constants.CASSANDRA_MAP_STORE);
+    new HazelcastStore(mapStore, Constants.CASSANDRA_MAP_STORE);
+    new HazelcastStore(mapStore, Constants.CASSANDRA_MAP_STORE);
+    
     worker = new HazelcastWorker(Constants.CASSANDRA_MAP_STORE);
-
   }
 
   @AfterClass
@@ -102,12 +106,19 @@ public class HCCassandraWorkerTest {
     // getting valid values to id and event
     final EventEntity res = dao.findAll().get(0);
     id = res.getId();
-    event = res.getEventData();
+    event = res.getMessage();
   }
 
   @Test(dependsOnGroups = CREATE_GROUP, groups = RUD_GROUP)
-  public void test_get_event_data() {
+  public void test_get_event() {
     assertEquals(worker.getEvent(id), event);
+  }
+
+  @Test(dependsOnGroups = CREATE_GROUP, groups = RUD_GROUP)
+  public void test_get_event_with_given_message() {
+    final Set<String> events = worker.getEventsWithMessage(event);
+    assertEquals(events.size(), 1);
+    assertEquals(events.toArray()[0], id);
   }
 
   @Test(dependsOnGroups = RUD_GROUP, groups = COLD_START_GROUP)
@@ -120,6 +131,14 @@ public class HCCassandraWorkerTest {
     worker = new HazelcastWorker(Constants.CASSANDRA_MAP_STORE);
 
     assertEquals(worker.getEvent(id), event);
+  }
+
+  @Test(dependsOnGroups = COLD_START_GROUP)
+  public void test_get_event_with_given_message_before_coldstart()
+      throws InterruptedException {
+    final Set<String> events = worker.getEventsWithMessage(event);
+    assertEquals(events.size(), 1);
+    assertEquals(events.toArray()[0], id);
   }
 
 }
