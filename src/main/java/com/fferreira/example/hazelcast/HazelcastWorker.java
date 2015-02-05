@@ -18,6 +18,7 @@ import com.hazelcast.config.GroupConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.OperationTimeoutException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -27,51 +28,51 @@ public class HazelcastWorker {
 
   // members
   static final Logger log = LoggerFactory.getLogger(HazelcastWorker.class);
-  private final IMap<String, String> subscribedEvents;
+  private final IMap<String, User> usersMap;
   private final HazelcastInstance hcInstance;
 
   public HazelcastWorker(final String datastore) {
     log.info("Creating Hazelcast CEP worker..");
     hcInstance = HazelcastClient.newHazelcastClient(getConfig());
-    subscribedEvents = hcInstance.getMap(datastore);
+    usersMap = hcInstance.getMap(datastore);
     log.info("Created CEP worker.");
   }
 
-  public void addSubscriber(final String id, String message) {
-    log.info("Storing {} for event {}", message, id);
-    subscribedEvents.put(id, message);
+  public void addUser(final String id, final User message) {
+    log.info("Storing user {} with id {}", message, id);
+    usersMap.put(id, message);
   }
 
-  public void removeSubscriber(final String id) {
-    log.info("Removing event {}", id);
-    subscribedEvents.remove(id);
+  public void removeUser(final String id) {
+    log.info("Removing user {}", id);
+    usersMap.remove(id);
   }
 
-  public Set<String> getSubscribers() {
-    return subscribedEvents.keySet();
+  public Set<String> getKeys() {
+    return usersMap.keySet();
   }
 
-  public String getEvent(final String id) {
-    return subscribedEvents.get(id);
+  public User getUser(final String id) {
+    return usersMap.get(id);
   }
 
-  public Set<String> getEventsWithMessage(final String message) {
+  public Collection<User> getUsersByFirstName(final String firstName) {
 
-    log.info("Finding events with message {}.", message);
+    log.info("Finding user with firtname {}.", firstName);
     // retrieve interested subscriber types
-    Set<String> events = Collections.EMPTY_SET;
+    Collection<User> users = Collections.EMPTY_SET;
 
     try {
-      final EventWithMessagePredicate predicate = new EventWithMessagePredicate(
-          message);
-      events = subscribedEvents.keySet(predicate);
-      log.info("Found {} events with message {} .", events.size(), message);
+      final UserByFirstNamePredicate predicate = new UserByFirstNamePredicate(
+          firstName);
+      users = usersMap.getAll(usersMap.keySet(predicate)).values();
+      log.info("Found {} users with firstname {} .", users.size(), firstName);
 
     } catch (OperationTimeoutException ote) {
       log.error("Hazelcast cluster is borked, so return empty set", ote);
     }
 
-    return events;
+    return users;
   }
 
   public void destroy() {

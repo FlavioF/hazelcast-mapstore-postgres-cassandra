@@ -18,14 +18,15 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.fferreira.example.hazelcast.Constants;
-import com.fferreira.example.hazelcast.EventEntity;
+import com.fferreira.example.hazelcast.mapstore.EntryEntity;
+import com.fferreira.example.hazelcast.mapstore.HazelcastDao;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CassandraClient {
+public class CassandraClient implements HazelcastDao<EntryEntity> {
 
   static final Logger log = LoggerFactory.getLogger(CassandraClient.class);
 
@@ -42,7 +43,8 @@ public class CassandraClient {
     });
   }
 
-  public void persist(final EventEntity value) {
+  @Override
+  public void persist(final EntryEntity value) {
     connect().execute(//
         "INSERT INTO " + Constants.CASSANDRA_KEYSPACE_TABLE_NAME//
             + " (id, data) "//
@@ -50,31 +52,34 @@ public class CassandraClient {
             + "');");
   }
 
-  public void remove(String key) {
+  @Override
+  public void remove(Object key) {
     connect().execute(//
         "DELETE FROM  " + Constants.CASSANDRA_KEYSPACE_TABLE_NAME//
             + " WHERE id = '" + key + "';");
   }
 
-  public EventEntity find(String key) {
+  @Override
+  public EntryEntity find(Object key) {
     ResultSet res = connect().execute(//
         "SELECT * FROM  " + Constants.CASSANDRA_KEYSPACE_TABLE_NAME//
             + " WHERE id = '" + key + "';");
     if (res.getAvailableWithoutFetching() > 0) {
       final Row r = res.one();
-      return new EventEntity(r.getString(0), r.getString(1));
+      return new EntryEntity(r.getString(0), r.getString(1));
     }
     return null;
   }
 
-  public List<EventEntity> findAll() {
+  @Override
+  public List<EntryEntity> findAll() {
     final ResultSet rowList = connect().execute(
     "SELECT * FROM " + Constants.CASSANDRA_KEYSPACE_TABLE_NAME + ";");
     if(rowList.getAvailableWithoutFetching()>0) {
-      final List<EventEntity> result = new  ArrayList<>();
+      final List<EntryEntity> result = new  ArrayList<>();
       rowList.all().stream().
           forEach((row) -> {
-            result.add(new EventEntity(row.getString(0), row.getString(1)));
+            result.add(new EntryEntity(row.getString(0), row.getString(1)));
       });
       return result;
     }

@@ -10,23 +10,18 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.fferreira.example.hazelcast;
+package com.fferreira.example.hazelcast.postgres;
 
-import com.hazelcast.query.Predicate;
-import java.util.Map;
+import com.fferreira.example.hazelcast.mapstore.EntryEntity;
+import com.fferreira.example.hazelcast.mapstore.HazelcastDao;
 
-public class EventWithMessagePredicate implements
-    Predicate<String, String> {
+/**
+ * DAO for {@link RoleEntity}.
+ */
+public class EntryEntityDao extends AbstractDao<EntryEntity> implements HazelcastDao<EntryEntity>{
 
-  private final String event;
-
-  public EventWithMessagePredicate(String event) {
-    this.event = event;
-  }
-
-  @Override
-  public boolean apply(Map.Entry<String, String> mapEntry) {
-    return mapEntry.getValue().equalsIgnoreCase(event);
+  public EntryEntityDao() {
+    super(EntryEntity.class);
   }
 
 }

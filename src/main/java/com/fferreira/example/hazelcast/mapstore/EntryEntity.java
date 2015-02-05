@@ -10,7 +10,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.fferreira.example.hazelcast;
+package com.fferreira.example.hazelcast.mapstore;
 
 import java.io.Serializable;
 import javax.persistence.Entity;
@@ -22,8 +22,8 @@ import javax.persistence.Version;
  * This entity represents an user file
  */
 @Entity
-@Table(name = "Event")
-public class EventEntity implements Serializable {
+@Table(name = "HZEntry")
+public class EntryEntity implements Serializable {
 
   private static final long serialVersionUID = 6387663732432366117L;
 
@@ -35,10 +35,10 @@ public class EventEntity implements Serializable {
 
   private String message;
 
-  public EventEntity() {
+  public EntryEntity() {
   }
 
-  public EventEntity(String id, String message) {
+  public EntryEntity(String id, String message) {
     this.id = id;
     this.message = message;
   }

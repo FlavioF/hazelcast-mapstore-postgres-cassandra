@@ -12,11 +12,14 @@
  */
 package com.fferreira.example.hazelcast.postgres;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fferreira.example.hazelcast.Constants;
-import com.fferreira.example.hazelcast.EventEntity;
 import com.fferreira.example.hazelcast.HazelcastStore;
 import com.fferreira.example.hazelcast.HazelcastWorker;
-import java.util.Set;
+import com.fferreira.example.hazelcast.User;
+import com.fferreira.example.hazelcast.mapstore.EntryEntity;
+import com.fferreira.example.hazelcast.mapstore.HazelcastMapStore;
+import java.util.Collection;
 import java.util.UUID;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -35,18 +38,18 @@ public class HCPostgresWorkerTest {
   private static final String RUD_GROUP = "rud_group";
   private static final String COLD_START_GROUP = "cold_start_group";
 
-  private EventEntityDao dao;
+  private EntryEntityDao dao;
   private EntityManagerFactory entityManagerFactory;
   private EntityManager entityManager;
   private EntityTransaction tx;
 
   private HazelcastWorker worker;
   private HazelcastStore store;
-  private HCPostgresMapStore mapStore;
+  private HazelcastMapStore mapStore;
 
   // data to be shared in test
   private String id;
-  private String event;
+  private User user;
   private int counter = 0;
 
   @BeforeClass
@@ -59,10 +62,10 @@ public class HCPostgresWorkerTest {
     tx = entityManager.getTransaction();
 
     // provision daos
-    dao = new EventEntityDao();
+    dao = new EntryEntityDao();
     dao.setEntityManager(entityManager);
 
-    mapStore = new HCPostgresMapStore();
+    mapStore = new HazelcastMapStore(User.class);
     mapStore.setDao(dao);
     store = new HazelcastStore(mapStore, Constants.POSTGRES_MAP_STORE);
     worker = new HazelcastWorker(Constants.POSTGRES_MAP_STORE);
@@ -78,15 +81,15 @@ public class HCPostgresWorkerTest {
   }
 
   @Test(groups = CREATE_GROUP, invocationCount = 3)
-  public void test_add_event() throws InterruptedException {
+  public void test_add_user() throws InterruptedException {
     counter++;
-    id = "event_postgres_" + counter + "_" + UUID.randomUUID();
-    event = "Event Postgres Data " + counter;
+    id = "user_postgres_" + counter + "_" + UUID.randomUUID();
+    user = new User("Flávio" + counter, "Ferreira" + counter, "Portugal");
     try {
       tx.begin();
-      worker.addSubscriber(id, event);
+      worker.addUser(id, user);
       // just give time to it since it is async
-      Thread.sleep(2000);
+      Thread.sleep(3000);
       tx.commit();
     } catch (Exception ex) {
       if (tx.isActive()) {
@@ -101,9 +104,9 @@ public class HCPostgresWorkerTest {
   public void test_remove_subscriber() throws Exception {
     try {
       tx.begin();
-      worker.removeSubscriber(id);
+      worker.removeUser(id);
       // just give time to it since it is async
-      Thread.sleep(2000);
+      Thread.sleep(3000);
       counter--;
       tx.commit();
     } catch (Exception ex) {
@@ -115,26 +118,28 @@ public class HCPostgresWorkerTest {
 
     assertEquals(dao.count(), counter);
 
-    // getting valid values to id and event
-    final EventEntity res = dao.findAll().get(0);
+    // getting valid values to id and user
+    final EntryEntity res = dao.findAll().get(0);
     id = res.getId();
-    event = res.getMessage();
+    user = new ObjectMapper().readValue(res.getMessage(), User.class);
   }
 
   @Test(dependsOnGroups = CREATE_GROUP, groups = RUD_GROUP)
-  public void test_get_event() {
-    assertEquals(worker.getEvent(id), event);
+  public void test_get_user() {
+    assertEquals(worker.getUser(id), user);
   }
 
   @Test(dependsOnGroups = CREATE_GROUP, groups = RUD_GROUP)
-  public void test_get_event_with_given_message() {
-    final Set<String> events = worker.getEventsWithMessage(event);
-    assertEquals(events.size(), 1);
-    assertEquals(events.toArray()[0], id);
+  public void test_get_user_with_given_message() {
+    final Collection<User> users = worker.getUsersByFirstName(user
+        .getFirtName());
+    assertEquals(users.size(), 1);
+    assertEquals(users.toArray(new User[users.size()])[0].getFirtName(),
+        user.getFirtName());
   }
 
   @Test(dependsOnGroups = RUD_GROUP, groups = COLD_START_GROUP)
-  public void test_get_event_data_after_instance_down() {
+  public void test_get_user_data_after_instance_down() {
     store.destroy();
     worker.destroy();
 
@@ -142,14 +147,17 @@ public class HCPostgresWorkerTest {
     store = new HazelcastStore(mapStore, Constants.POSTGRES_MAP_STORE);
     worker = new HazelcastWorker(Constants.POSTGRES_MAP_STORE);
 
-    assertEquals(worker.getEvent(id), event);
+    assertEquals(worker.getUser(id), user);
   }
 
   @Test(dependsOnGroups = COLD_START_GROUP)
-  public void test_get_event_with_given_message_before_coldstart() throws InterruptedException {
-    final Set<String> events = worker.getEventsWithMessage(event);
-    assertEquals(events.size(), 1);
-    assertEquals(events.toArray()[0], id);
+  public void test_get_user_with_given_message_before_coldstart()
+      throws InterruptedException {
+    final Collection<User> users = worker.getUsersByFirstName(user
+        .getFirtName());
+    assertEquals(users.size(), 1);
+    assertEquals(users.toArray(new User[users.size()])[0].getFirtName(),
+        user.getFirtName());
   }
 
 }

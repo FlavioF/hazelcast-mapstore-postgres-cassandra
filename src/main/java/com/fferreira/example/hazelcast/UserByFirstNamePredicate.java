@@ -10,18 +10,23 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.fferreira.example.hazelcast.postgres;
+package com.fferreira.example.hazelcast;
 
-import com.fferreira.example.hazelcast.AbstractDao;
-import com.fferreira.example.hazelcast.EventEntity;
+import com.hazelcast.query.Predicate;
+import java.util.Map;
 
-/**
- * DAO for {@link RoleEntity}.
- */
-public class EventEntityDao extends AbstractDao<EventEntity> {
+public class UserByFirstNamePredicate implements
+    Predicate<String, User> {
 
-  public EventEntityDao() {
-    super(EventEntity.class);
+  private final String firstName;
+
+  public UserByFirstNamePredicate(String firstName) {
+    this.firstName = firstName;
+  }
+
+  @Override
+  public boolean apply(Map.Entry<String, User> mapEntry) {
+    return mapEntry.getValue().getFirtName().equalsIgnoreCase(firstName);
   }
 
 }

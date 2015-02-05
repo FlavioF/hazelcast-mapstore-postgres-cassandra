@@ -24,7 +24,7 @@
     name="postgres_test"
     transaction-type="RESOURCE_LOCAL">
     <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
-    <class>com.fferreira.example.hazelcast.EventEntity</class>
+    <class>com.fferreira.example.hazelcast.mapstore.EntryEntity</class>
     <properties>
       <property name="javax.persistence.jdbc.servername" value="localhost" />
       <property name="javax.persistence.jdbc.portnumber" value="5432" />
@@ -39,7 +39,6 @@
       <property name="hibernate.show_sql" value="true" />
       <property name="hibernate.format_sql" value="true" />
       <property name="hibernate.hbm2ddl.auto" value="create" />      
-      <property name="hibernate.default_schema" value="be"/>
     </properties>
   </persistence-unit>
 </persistence>

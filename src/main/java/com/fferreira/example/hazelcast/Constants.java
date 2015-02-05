@@ -18,11 +18,11 @@ public class Constants {
   public static final String CASSANDRA_MAP_STORE = "cassandra-map-store";
 
   public static final String CASSANDRA_KEYSPACE = "example";
-  public static final String CASSANDRA_TABLE_NAME = "event";
+  public static final String CASSANDRA_TABLE_NAME = "hzentry";
   public static final String CASSANDRA_KEYSPACE_TABLE_NAME = CASSANDRA_KEYSPACE
       + "." + CASSANDRA_TABLE_NAME;
 
-  public static final String HC_GROUP_NAME = "be-cep";
-  public static final String HC_GROUP_PASSWORD = "cep";
+  public static final String HC_GROUP_NAME = "test-group";
+  public static final String HC_GROUP_PASSWORD = "test";
   public static final int HC_PORT = 5701;
 }
