@@ -86,7 +86,6 @@ public class HazelcastWorker {
   // private API
   private ClientConfig getConfig() {
     final ClientConfig clientConfig = new ClientConfig();
-    clientConfig.addAddress(String.format("127.0.0.1:%s", Constants.HC_PORT));
     clientConfig.setGroupConfig(new GroupConfig(Constants.HC_GROUP_NAME,
         Constants.HC_GROUP_PASSWORD));
     clientConfig.setClassLoader(getClass().getClassLoader());

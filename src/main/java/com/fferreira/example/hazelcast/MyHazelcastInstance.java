@@ -29,16 +29,16 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class HazelcastStore {
+public class MyHazelcastInstance {
 
   // members
-  static final Logger log = LoggerFactory.getLogger(HazelcastStore.class);
+  static final Logger log = LoggerFactory.getLogger(MyHazelcastInstance.class);
   private final String instanceName;
   private final MapStore store;
   private final String storeType;
 
   // public API
-  public HazelcastStore(final MapStore store, final String storeType) {
+  public MyHazelcastInstance(final MapStore store, final String storeType) {
     this.store = store;
     this.storeType = storeType;
     log.info("Creating Hazelcast CEP instance..");

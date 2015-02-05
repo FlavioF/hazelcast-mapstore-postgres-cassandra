@@ -15,8 +15,8 @@ package com.fferreira.example.hazelcast.cassandra;
 import com.datastax.driver.core.Session;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fferreira.example.hazelcast.Constants;
-import com.fferreira.example.hazelcast.HazelcastStore;
 import com.fferreira.example.hazelcast.HazelcastWorker;
+import com.fferreira.example.hazelcast.MyHazelcastInstance;
 import com.fferreira.example.hazelcast.User;
 import com.fferreira.example.hazelcast.mapstore.EntryEntity;
 import com.fferreira.example.hazelcast.mapstore.HazelcastMapStore;
@@ -37,7 +37,7 @@ public class HCCassandraWorkerTest {
   private CassandraClient dao;
 
   private HazelcastWorker worker;
-  private HazelcastStore store;
+  private MyHazelcastInstance store;
   private HazelcastMapStore mapStore;
 
   // data to be shared in test
@@ -65,9 +65,9 @@ public class HCCassandraWorkerTest {
     mapStore.setDao(dao);
 
     // starting 3 instances of hazelcast
-    store = new HazelcastStore(mapStore, Constants.CASSANDRA_MAP_STORE);
-    new HazelcastStore(mapStore, Constants.CASSANDRA_MAP_STORE);
-    new HazelcastStore(mapStore, Constants.CASSANDRA_MAP_STORE);
+    store = new MyHazelcastInstance(mapStore, Constants.CASSANDRA_MAP_STORE);
+    new MyHazelcastInstance(mapStore, Constants.CASSANDRA_MAP_STORE);
+    new MyHazelcastInstance(mapStore, Constants.CASSANDRA_MAP_STORE);
 
     worker = new HazelcastWorker(Constants.CASSANDRA_MAP_STORE);
   }
@@ -133,7 +133,7 @@ public class HCCassandraWorkerTest {
     worker.destroy();
 
     // initializing a new instance to test cold start
-    store = new HazelcastStore(mapStore, Constants.CASSANDRA_MAP_STORE);
+    store = new MyHazelcastInstance(mapStore, Constants.CASSANDRA_MAP_STORE);
     worker = new HazelcastWorker(Constants.CASSANDRA_MAP_STORE);
 
     assertEquals(worker.getUser(id), user);

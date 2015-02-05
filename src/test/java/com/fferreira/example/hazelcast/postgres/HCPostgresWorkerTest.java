@@ -14,7 +14,7 @@ package com.fferreira.example.hazelcast.postgres;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fferreira.example.hazelcast.Constants;
-import com.fferreira.example.hazelcast.HazelcastStore;
+import com.fferreira.example.hazelcast.MyHazelcastInstance;
 import com.fferreira.example.hazelcast.HazelcastWorker;
 import com.fferreira.example.hazelcast.User;
 import com.fferreira.example.hazelcast.mapstore.EntryEntity;
@@ -44,7 +44,7 @@ public class HCPostgresWorkerTest {
   private EntityTransaction tx;
 
   private HazelcastWorker worker;
-  private HazelcastStore store;
+  private MyHazelcastInstance store;
   private HazelcastMapStore mapStore;
 
   // data to be shared in test
@@ -67,7 +67,7 @@ public class HCPostgresWorkerTest {
 
     mapStore = new HazelcastMapStore(User.class);
     mapStore.setDao(dao);
-    store = new HazelcastStore(mapStore, Constants.POSTGRES_MAP_STORE);
+    store = new MyHazelcastInstance(mapStore, Constants.POSTGRES_MAP_STORE);
     worker = new HazelcastWorker(Constants.POSTGRES_MAP_STORE);
   }
 
@@ -144,7 +144,7 @@ public class HCPostgresWorkerTest {
     worker.destroy();
 
     // initializing a new instance to test cold start
-    store = new HazelcastStore(mapStore, Constants.POSTGRES_MAP_STORE);
+    store = new MyHazelcastInstance(mapStore, Constants.POSTGRES_MAP_STORE);
     worker = new HazelcastWorker(Constants.POSTGRES_MAP_STORE);
 
     assertEquals(worker.getUser(id), user);
