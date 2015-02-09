@@ -32,16 +32,23 @@ public class HazelcastMapStore<V extends Serializable> implements
   static final Logger log = LoggerFactory.getLogger(HazelcastMapStore.class);
 
   private HazelcastDao<EntryEntity> dao;
-  private final Class<V> valueClass;
+  private Class<V> valueClass;
+  private Class<?>[] subClass;
 
   private final ObjectMapper mapper = new ObjectMapper();
 
-  public HazelcastMapStore(final Class<V> valueClass) {
+  public HazelcastMapStore(Class<V> valueClass) {
     this.valueClass = valueClass;
   }
 
-  public HazelcastMapStore(HazelcastDao<EntryEntity> dao, Class<V> valueClass) {
+  public HazelcastMapStore(Class<V> valueClass, Class<?>... subClass) {
     this(valueClass);
+    this.subClass = subClass;
+  }
+
+  public HazelcastMapStore(HazelcastDao<EntryEntity> dao, Class<V> valueClass,
+      Class<?>... subClass) {
+    this(valueClass, subClass);
     this.dao = dao;
   }
 
@@ -107,8 +114,11 @@ public class HazelcastMapStore<V extends Serializable> implements
   }
 
   private V fromJson(final String json) {
+
     try {
-      return mapper.readValue(json, valueClass);
+      return subClass != null ? mapper.readValue(json, mapper.getTypeFactory()
+          .constructParametricType(valueClass, subClass)) : mapper.readValue(
+          json, valueClass);
     } catch (IOException ex) {
       log.error("Error deserializing object " + json, ex);
     }

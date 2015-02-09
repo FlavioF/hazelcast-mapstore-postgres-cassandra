@@ -10,8 +10,9 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.fferreira.example.hazelcast.postgres;
+package com.fferreira.example.hazelcast.mapstore.postgres;
 
+import com.fferreira.example.hazelcast.mapstore.postgres.EntryEntityDao;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fferreira.example.hazelcast.Constants;
 import com.fferreira.example.hazelcast.MyHazelcastInstance;

@@ -125,7 +125,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <systemPropertyVariables>
-            <cassandra.ip>172.17.0.77</cassandra.ip>
+            <cassandra.ip>172.17.0.108</cassandra.ip>
           </systemPropertyVariables>
         </configuration>
         <version>2.18</version>
@@ -180,7 +180,7 @@
     <testng.version>6.8.13</testng.version>
 
     <!-- Dependencies versions -->
-    <hazelcast.version>3.3</hazelcast.version>
+    <hazelcast.version>3.4</hazelcast.version>
     <cassandra.version>2.1.2</cassandra.version>
 
     <!-- Logging -->

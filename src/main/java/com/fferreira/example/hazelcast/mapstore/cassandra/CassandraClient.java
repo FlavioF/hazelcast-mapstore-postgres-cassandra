@@ -10,7 +10,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.fferreira.example.hazelcast.cassandra;
+package com.fferreira.example.hazelcast.mapstore.cassandra;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Metadata;

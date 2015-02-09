@@ -10,8 +10,9 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.fferreira.example.hazelcast.cassandra;
+package com.fferreira.example.hazelcast.mapstore.cassandra;
 
+import com.fferreira.example.hazelcast.mapstore.cassandra.CassandraClient;
 import com.datastax.driver.core.Session;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fferreira.example.hazelcast.Constants;
