@@ -13,14 +13,17 @@
 package com.fferreira.example.hazelcast.mapstore;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 
 public interface HazelcastDao<T extends Serializable> {
   void persist(T val);
 
-  void remove(Object id);
+  void remove(String id);
 
-  T find(Object id);
+  T find(String id);
 
   List<T> findAll();
+
+  List<T> findAll(Collection<String> ids);
 }

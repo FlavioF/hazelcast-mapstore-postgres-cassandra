@@ -21,8 +21,10 @@ import com.fferreira.example.hazelcast.Constants;
 import com.fferreira.example.hazelcast.mapstore.EntryEntity;
 import com.fferreira.example.hazelcast.mapstore.HazelcastDao;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,14 +55,14 @@ public class CassandraClient implements HazelcastDao<EntryEntity> {
   }
 
   @Override
-  public void remove(Object key) {
+  public void remove(String key) {
     connect().execute(//
         "DELETE FROM  " + Constants.CASSANDRA_KEYSPACE_TABLE_NAME//
             + " WHERE id = '" + key + "';");
   }
 
   @Override
-  public EntryEntity find(Object key) {
+  public EntryEntity find(String key) {
     ResultSet res = connect().execute(//
         "SELECT * FROM  " + Constants.CASSANDRA_KEYSPACE_TABLE_NAME//
             + " WHERE id = '" + key + "';");
@@ -94,4 +96,26 @@ public class CassandraClient implements HazelcastDao<EntryEntity> {
     cluster.close();
   }
 
+  @Override
+  public List<EntryEntity> findAll(Collection<String> ids) {
+    //Transform collection into a string
+    final String filters = String.join(",", ids.stream().
+        map((id) -> "'" + id + "'").collect(Collectors.toList()));
+    
+    
+    String query = //
+        "SELECT * FROM  " + Constants.CASSANDRA_KEYSPACE_TABLE_NAME//
+            + " WHERE id IN (" + filters + ");";
+    log.info("Query: {}",query);
+    ResultSet rowList = connect().execute(query);
+    if(rowList.getAvailableWithoutFetching()>0) {
+      final List<EntryEntity> result = new  ArrayList<>();
+      rowList.all().stream().
+          forEach((row) -> {
+            result.add(new EntryEntity(row.getString(0), row.getString(1)));
+      });
+      return result;
+    }
+    return Collections.EMPTY_LIST;
+  }
 }

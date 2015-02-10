@@ -95,9 +95,9 @@ public class HazelcastMapStore<V extends Serializable> implements
   public Map<String, V> loadAll(Collection<String> keys) {
     log.info("Loading All");
     final Map<String, V> map = new HashMap<>();
-    keys.stream().
-        forEach((key) -> {
-          map.put(key, (V)load(key));
+    dao.findAll(keys).stream().
+        forEach((entry) -> {
+          map.put(entry.getId(), fromJson(entry.getMessage()));
     });
     return map;
   }

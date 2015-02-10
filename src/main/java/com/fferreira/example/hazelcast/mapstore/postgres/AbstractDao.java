@@ -48,14 +48,14 @@ public abstract class AbstractDao<T> {
     return getEntityManager().merge(entity);
   }
 
-  public void remove(Object entityId) {
+  public void remove(String entityId) {
     T entity = find(entityId);
     if (entity != null) {
       getEntityManager().remove(entity);
     }
   }
 
-  public T find(Object id) {
+  public T find(String id) {
     return getEntityManager().find(entityClass, id);
   }
 

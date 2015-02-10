@@ -14,14 +14,38 @@ package com.fferreira.example.hazelcast.mapstore.postgres;
 
 import com.fferreira.example.hazelcast.mapstore.EntryEntity;
 import com.fferreira.example.hazelcast.mapstore.HazelcastDao;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 /**
  * DAO for {@link RoleEntity}.
  */
-public class EntryEntityDao extends AbstractDao<EntryEntity> implements HazelcastDao<EntryEntity>{
+public class EntryEntityDao extends AbstractDao<EntryEntity> implements
+    HazelcastDao<EntryEntity> {
 
   public EntryEntityDao() {
     super(EntryEntity.class);
   }
 
+  @Override
+  public List<EntryEntity> findAll(Collection<String> ids) {
+    final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+    final CriteriaQuery<EntryEntity> cq = cb.createQuery(entityClass);
+    final Root<EntryEntity> root = cq.from(entityClass);
+    cq.select(root);
+    final List<Predicate> orPredicates = new ArrayList<>();
+    ids.stream().
+        forEach((id) -> {
+          orPredicates.add(cb.equal(root.get("id"), id));
+    });
+    cq.where(cb.or(orPredicates
+        .toArray(new Predicate[orPredicates.size()])));
+
+    return getEntityManager().createQuery(cq).getResultList();
+  }
 }

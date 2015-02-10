@@ -12,7 +12,6 @@
  */
 package com.fferreira.example.hazelcast.mapstore.cassandra;
 
-import com.fferreira.example.hazelcast.mapstore.cassandra.CassandraClient;
 import com.datastax.driver.core.Session;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fferreira.example.hazelcast.Constants;
@@ -67,8 +66,6 @@ public class HCCassandraWorkerTest {
 
     // starting 3 instances of hazelcast
     store = new MyHazelcastInstance(mapStore, Constants.CASSANDRA_MAP_STORE);
-    new MyHazelcastInstance(mapStore, Constants.CASSANDRA_MAP_STORE);
-    new MyHazelcastInstance(mapStore, Constants.CASSANDRA_MAP_STORE);
 
     worker = new HazelcastWorker(Constants.CASSANDRA_MAP_STORE);
   }
@@ -135,6 +132,8 @@ public class HCCassandraWorkerTest {
 
     // initializing a new instance to test cold start
     store = new MyHazelcastInstance(mapStore, Constants.CASSANDRA_MAP_STORE);
+    new MyHazelcastInstance(mapStore, Constants.CASSANDRA_MAP_STORE);
+    new MyHazelcastInstance(mapStore, Constants.CASSANDRA_MAP_STORE);
     worker = new HazelcastWorker(Constants.CASSANDRA_MAP_STORE);
 
     assertEquals(worker.getUser(id), user);
