@@ -12,11 +12,10 @@
  */
 package com.fferreira.example.hazelcast.mapstore.postgres;
 
-import com.fferreira.example.hazelcast.mapstore.postgres.EntryEntityDao;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fferreira.example.hazelcast.Constants;
-import com.fferreira.example.hazelcast.MyHazelcastInstance;
 import com.fferreira.example.hazelcast.HazelcastWorker;
+import com.fferreira.example.hazelcast.MyHazelcastInstance;
 import com.fferreira.example.hazelcast.User;
 import com.fferreira.example.hazelcast.mapstore.EntryEntity;
 import com.fferreira.example.hazelcast.mapstore.HazelcastMapStore;
@@ -27,7 +26,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.FlushModeType;
 import javax.persistence.Persistence;
-import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.Assert.assertEquals;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -46,7 +45,7 @@ public class HCPostgresWorkerTest {
 
   private HazelcastWorker worker;
   private MyHazelcastInstance store;
-  private HazelcastMapStore mapStore;
+  private HazelcastMapStore<String, User> mapStore;
 
   // data to be shared in test
   private String id;
@@ -66,8 +65,7 @@ public class HCPostgresWorkerTest {
     dao = new EntryEntityDao();
     dao.setEntityManager(entityManager);
 
-    mapStore = new HazelcastMapStore(User.class);
-    mapStore.setDao(dao);
+    mapStore = new HazelcastMapStore(String.class, User.class, dao);
     store = new MyHazelcastInstance(mapStore, Constants.POSTGRES_MAP_STORE);
     worker = new HazelcastWorker(Constants.POSTGRES_MAP_STORE);
   }

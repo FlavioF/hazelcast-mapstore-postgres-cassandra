@@ -38,7 +38,7 @@ public class HCCassandraWorkerTest {
 
   private HazelcastWorker worker;
   private MyHazelcastInstance store;
-  private HazelcastMapStore mapStore;
+  private HazelcastMapStore<String, User> mapStore;
 
   // data to be shared in test
   private String id;
@@ -61,8 +61,7 @@ public class HCCassandraWorkerTest {
         + Constants.CASSANDRA_KEYSPACE_TABLE_NAME + " ("
         + "id text PRIMARY KEY," + "data text" + ");");
 
-    mapStore = new HazelcastMapStore(User.class);
-    mapStore.setDao(dao);
+    mapStore = new HazelcastMapStore(String.class, User.class, dao);
 
     // starting 3 instances of hazelcast
     store = new MyHazelcastInstance(mapStore, Constants.CASSANDRA_MAP_STORE);

@@ -14,6 +14,7 @@ package com.fferreira.example.hazelcast.mapstore;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.hazelcast.core.MapStore;
 import java.io.IOException;
 import java.io.Serializable;
@@ -23,47 +24,47 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class HazelcastMapStore<V extends Serializable> implements
-    MapStore<String, V> {
+public class HazelcastMapStore<K extends Serializable, V extends Serializable>
+    implements MapStore<K, V> {
 
   static final Logger log = LoggerFactory.getLogger(HazelcastMapStore.class);
 
   private HazelcastDao<EntryEntity> dao;
+  private final ObjectMapper mapper;
+
+  private Class<K> keyClass;
   private Class<V> valueClass;
-  private Class<?>[] subClass;
 
-  private final ObjectMapper mapper = new ObjectMapper();
-
-  public HazelcastMapStore(Class<V> valueClass) {
+  public HazelcastMapStore(Class<K> keyClass, Class<V> valueClass) {
+    mapper = new ObjectMapper();
+    mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+    this.keyClass = keyClass;
     this.valueClass = valueClass;
   }
 
-  public HazelcastMapStore(Class<V> valueClass, Class<?>... subClass) {
-    this(valueClass);
-    this.subClass = subClass;
-  }
-
-  public HazelcastMapStore(HazelcastDao<EntryEntity> dao, Class<V> valueClass,
-      Class<?>... subClass) {
-    this(valueClass, subClass);
+  public HazelcastMapStore(Class<K> keyClass, Class<V> valueClass,
+      HazelcastDao<EntryEntity> dao) {
+    this(keyClass, valueClass);
     this.dao = dao;
   }
 
   @Override
-  public void store(final String key, final V value) {
+  public void store(final K key, final V value) {
     log.info("Storing key " + key + " with value " + value);
     try {
-      dao.persist(new EntryEntity(key, mapper.writeValueAsString(value)));
+      dao.persist(new EntryEntity(keyToJson(key), mapper
+          .writeValueAsString(value)));
     } catch (JsonProcessingException ex) {
       log.error("Error parsing given object " + value, ex);
     }
   }
 
   @Override
-  public void storeAll(final  Map<String, V> map) {
+  public void storeAll(final  Map<K, V> map) {
     map.entrySet().stream().
         forEach((entrySet) -> {
           store(entrySet.getKey(), entrySet.getValue());
@@ -71,13 +72,13 @@ public class HazelcastMapStore<V extends Serializable> implements
   }
 
   @Override
-  public void delete(final String key) {
+  public void delete(final K key) {
     log.info("Deleting key " + key);
-    dao.remove(key);
+    dao.remove(keyToJson(key));
   }
 
   @Override
-  public void deleteAll(final Collection<String> keys) {
+  public void deleteAll(final Collection<K> keys) {
     keys.stream().
         forEach((key) -> {
           delete(key);
@@ -85,44 +86,74 @@ public class HazelcastMapStore<V extends Serializable> implements
   }
 
   @Override
-  public V load(final String key) {
+  public V load(final K key) {
     log.info("Loading");
-    final EntryEntity entry = dao.find(key);
-    return entry == null ? null : fromJson(entry.getMessage());
+    final EntryEntity entry = dao.find(keyToJson(key));
+    return entry == null ? null : valueFromJson(entry.getMessage());
   }
 
   @Override
-  public Map<String, V> loadAll(Collection<String> keys) {
+  public Map<K, V> loadAll(final Collection<K> keys) {
     log.info("Loading All");
-    final Map<String, V> map = new HashMap<>();
-    dao.findAll(keys).stream().
+    final Map<K, V> map = new HashMap<>();
+    dao.findAll(//
+        keys.stream()//
+            .map(it -> keyToJson(it))//
+            .collect(Collectors.toList())//
+        ).stream().
         forEach((entry) -> {
-          map.put(entry.getId(), fromJson(entry.getMessage()));
+          map.put(keyFromJson(entry.getId()), valueFromJson(entry.getMessage()));
     });
     return map;
   }
 
   @Override
-  public Set<String> loadAllKeys() {
+  public Set<K> loadAllKeys() {
     final List<EntryEntity> list = dao.findAll();
-    final Set<String> set = new HashSet<>();
+    final Set<K> set = new HashSet<>();
      list.stream().
      forEach((item) -> {
-      set.add(item.getId());
+      set.add(keyFromJson(item.getId()));
      });
     return set;
   }
 
-  private V fromJson(final String json) {
+  private V valueFromJson(final String json) {
 
     try {
-      return subClass != null ? mapper.readValue(json, mapper.getTypeFactory()
-          .constructParametricType(valueClass, subClass)) : mapper.readValue(
-          json, valueClass);
+      return mapper.readValue(json, valueClass);
     } catch (IOException ex) {
       log.error("Error deserializing object " + json, ex);
     }
     return null;
+  }
+
+  private K keyFromJson(final String json) {
+    K res = null;
+    if (keyClass.equals(String.class)) {
+      res = (K) json;
+    } else {
+      try {
+        res = mapper.readValue(json, keyClass);
+      } catch (IOException ex) {
+        log.error("Error deserializing object " + json, ex);
+      }
+    }
+    return res;
+  }
+
+  private String keyToJson(final K key) {
+    String res = null;
+    if (key.getClass().equals(String.class)) {
+      res = (String) key;
+    } else {
+      try {
+        res = mapper.writeValueAsString(key);
+      } catch (IOException ex) {
+        log.error("Error deserializing object " + key, ex);
+      }
+    }
+    return res;
   }
 
   public HazelcastDao<EntryEntity> getDao() {

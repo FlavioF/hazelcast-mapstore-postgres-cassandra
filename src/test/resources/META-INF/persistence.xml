@@ -28,11 +28,11 @@
     <properties>
       <property name="javax.persistence.jdbc.servername" value="localhost" />
       <property name="javax.persistence.jdbc.portnumber" value="5432" />
-      <property name="javax.persistence.jdbc.databasename" value="yourpostgresdb" />      
-      <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/yourpostgresdb" />      
+      <property name="javax.persistence.jdbc.databasename" value="bedbtest" />      
+      <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/bedbtest" />      
       <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver" />
-      <property name="javax.persistence.jdbc.user" value="yourpostgresuser" />
-      <property name="javax.persistence.jdbc.password" value="yourpassword" />
+      <property name="javax.persistence.jdbc.user" value="postgres" />
+      <property name="javax.persistence.jdbc.password" value="bikeemotion" />
       <property name="hibernate.id.new_generator_mappings" value="true" />
       <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQL82Dialect" />
       <property name="hibernate.archive.autodetection" value="class" />
